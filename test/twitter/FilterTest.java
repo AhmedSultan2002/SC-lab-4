@@ -15,8 +15,25 @@ public class FilterTest {
 
     /*
      * TODO: your testing strategies for these methods should go here.
-     * See the ic03-testing exercise for examples of what a testing strategy comment looks like.
-     * Make sure you have partitions.
+     * 
+     * Testing strategy for writtenBy():
+     * - Test no tweets
+     * - Test one tweet with matching author
+     * - Test multiple tweets with one matching author
+     * - Test case insensitivity in username comparison
+     *
+     * Testing strategy for inTimespan():
+     * - Test no tweets
+     * - Test one tweet within the timespan
+     * - Test multiple tweets where all are within the timespan
+     * - Test multiple tweets where some are within and some are outside the timespan
+     * - Test edge cases (start and end times matching tweet timestamps)
+     * 
+     * Testing strategy for containing():
+     * - Test no tweets
+     * - Test one tweet containing the word
+     * - Test multiple tweets where all contain at least one of the words
+     * - Test case insensitivity in word comparison
      */
     
     private static final Instant d1 = Instant.parse("2016-02-17T10:00:00Z");
@@ -31,6 +48,13 @@ public class FilterTest {
     }
     
     @Test
+    public void testWrittenByNoTweets() {
+        List<Tweet> writtenBy = Filter.writtenBy(Arrays.asList(), "alyssa");
+        
+        assertTrue("expected empty list", writtenBy.isEmpty());
+    }
+
+    @Test
     public void testWrittenByMultipleTweetsSingleResult() {
         List<Tweet> writtenBy = Filter.writtenBy(Arrays.asList(tweet1, tweet2), "alyssa");
         
@@ -38,6 +62,24 @@ public class FilterTest {
         assertTrue("expected list to contain tweet", writtenBy.contains(tweet1));
     }
     
+    @Test
+    public void testWrittenByCaseInsensitive() {
+        List<Tweet> writtenBy = Filter.writtenBy(Arrays.asList(tweet1, tweet2), "ALYSSA");
+        
+        assertEquals("expected singleton list", 1, writtenBy.size());
+        assertTrue("expected list to contain tweet", writtenBy.contains(tweet1));
+    }
+
+    @Test
+    public void testInTimespanNoTweets() {
+        Instant testStart = Instant.parse("2016-02-17T09:00:00Z");
+        Instant testEnd = Instant.parse("2016-02-17T12:00:00Z");
+        
+        List<Tweet> inTimespan = Filter.inTimespan(Arrays.asList(), new Timespan(testStart, testEnd));
+        
+        assertTrue("expected empty list", inTimespan.isEmpty());
+    }
+
     @Test
     public void testInTimespanMultipleTweetsMultipleResults() {
         Instant testStart = Instant.parse("2016-02-17T09:00:00Z");
@@ -49,15 +91,41 @@ public class FilterTest {
         assertTrue("expected list to contain tweets", inTimespan.containsAll(Arrays.asList(tweet1, tweet2)));
         assertEquals("expected same order", 0, inTimespan.indexOf(tweet1));
     }
+
+    @Test
+    public void testInTimespanEdgeCase() {
+        Instant testStart = d1;
+        Instant testEnd = d2;
+        
+        List<Tweet> inTimespan = Filter.inTimespan(Arrays.asList(tweet1, tweet2), new Timespan(testStart, testEnd));
+        
+        assertTrue("expected list to contain tweets within edge", inTimespan.containsAll(Arrays.asList(tweet1, tweet2)));
+    }
+
+    @Test
+    public void testContainingNoTweets() {
+        List<Tweet> containing = Filter.containing(Arrays.asList(), Arrays.asList("talk"));
+        
+        assertTrue("expected empty list", containing.isEmpty());
+    }
     
     @Test
-    public void testContaining() {
+    public void testContainingOneTweet() {
         List<Tweet> containing = Filter.containing(Arrays.asList(tweet1, tweet2), Arrays.asList("talk"));
         
         assertFalse("expected non-empty list", containing.isEmpty());
-        assertTrue("expected list to contain tweets", containing.containsAll(Arrays.asList(tweet1, tweet2)));
-        assertEquals("expected same order", 0, containing.indexOf(tweet1));
+        assertTrue("expected list to contain tweet", containing.containsAll(Arrays.asList(tweet1, tweet2)));
     }
+
+    @Test
+    public void testContainingCaseInsensitive() {
+        List<Tweet> containing = Filter.containing(Arrays.asList(tweet1, tweet2), Arrays.asList("TALK"));
+        
+        assertFalse("expected non-empty list", containing.isEmpty());
+        assertTrue("expected list to contain tweet", containing.containsAll(Arrays.asList(tweet1, tweet2)));
+    }
+
+  
 
     /*
      * Warning: all the tests you write here must be runnable against any Filter

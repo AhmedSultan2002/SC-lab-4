@@ -29,9 +29,9 @@ public class Extract {
      */
     public static Timespan getTimespan(List<Tweet> tweets) {
         if (tweets.isEmpty()) {
-            return new Timespan(Instant.MAX, Instant.MIN); // Invalid timespan for empty list
+            throw new IllegalArgumentException("Tweet list cannot be empty");
         }
-
+        
         Instant start = tweets.get(0).getTimestamp();
         Instant end = tweets.get(0).getTimestamp();
         
@@ -46,6 +46,7 @@ public class Extract {
         
         return new Timespan(start, end);
     }
+    
 
     /**
      * Get usernames mentioned in a list of tweets.
